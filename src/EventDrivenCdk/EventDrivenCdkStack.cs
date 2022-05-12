@@ -37,13 +37,6 @@ namespace EventDrivenCdk
             //     BillingMode = BillingMode.PAY_PER_REQUEST
             // });
             //
-            // var snsTopic = new Topic(this, "TestTopic", new TopicProps()
-            // {
-            //     DisplayName = "TestSns",
-            //     TopicName = "TestSNS",
-            // });
-            // snsTopic.AddSubscription(new EmailSubscription("jamesuk@amazon.co.uk"));
-            //
             // var stepFunctionRole = new Role(this, "Step Function Role", new RoleProps()
             // {
             //     AssumedBy = new ServicePrincipal("states.amazonaws.com"),
