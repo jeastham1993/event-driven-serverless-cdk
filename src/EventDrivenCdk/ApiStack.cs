@@ -31,7 +31,25 @@ namespace EventDrivenCdk
                 BillingMode = BillingMode.PAY_PER_REQUEST
             });
 
-            var putItem = new DynamoPutItem(this, "StoreApiInput", new DynamoPutItemProps()
+            var sfnWorkflow = new DynamoUpdateItem(this, "GenerateCaseId", new DynamoUpdateItemProps()
+            {
+                Table = apiTable,
+                ReturnValues = DynamoReturnValues.UPDATED_NEW,
+                UpdateExpression = "set IDvalue = IDvalue + :val",
+                ExpressionAttributeValues = new Dictionary<string, DynamoAttributeValue>(1)
+                {
+                    {":val", DynamoAttributeValue.FromNumber(1)}
+                },
+                Key = new Dictionary<string, DynamoAttributeValue>(1)
+                {
+                    {"PK", DynamoAttributeValue.FromString("reviewId")}
+                },
+                ResultSelector = new Dictionary<string, object>()
+                {
+                    {"reviewId", DynamoAttributeValue.FromString(JsonPath.StringAt("$.Attributes.IDvalue.N"))}
+                },
+                ResultPath = "$.reviewIdentifier",
+            }).Next(new DynamoPutItem(this, "StoreApiInput", new DynamoPutItemProps()
                 {
                     Table = apiTable,
                     ResultPath = "$.output",
@@ -68,12 +86,13 @@ namespace EventDrivenCdk
                             Source = "event-driven-cdk.api",
                             EventBus = props.CentralEventBridge
                         }
-                    }
-                }));
+                    },
+                    ResultPath = "$.eventOutput",
+                })));
 
             var stateMachine = new StateMachine(this, "ApiStateMachine", new StateMachineProps
             {
-                Definition = putItem,
+                Definition = sfnWorkflow,
                 StateMachineType = StateMachineType.EXPRESS,
                 Logs = new LogOptions()
                 {
