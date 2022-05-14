@@ -101,7 +101,7 @@ namespace EventDrivenCdk
                 }))
                 .Next(new Pass(this, "FormatHTTPresponse", new PassProps()
                 {
-                    Parameters = new Dictionary<string, object>(1)
+                    Parameters = new Dictionary<string, object>(4)
                     {
                         {"reviewId", JsonPath.StringAt("$.reviewIdentifier.reviewId.attributeValue.S") },
                         {"reviewIdentifier", JsonPath.StringAt("$.body.reviewIdentifier") },

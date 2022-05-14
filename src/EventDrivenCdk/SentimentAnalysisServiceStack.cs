@@ -21,28 +21,36 @@ namespace EventDrivenCdk
         public SentimentAnalysisServiceStack(Construct scope, string id, SentimentAnalysisServiceStackProps props) :
             base(scope, id)
         {
-            var analyseSentiment = new CallAwsService(this, "CallSentimentAnalysis", new CallAwsServiceProps()
-                {
-                    Service = "comprehend",
-                    Action = "detectSentiment",
-                    Parameters = new Dictionary<string, object>(2)
+            var sentimentAnalysisChain = new CallAwsService(this, "CallSentimentAnalysis", new CallAwsServiceProps()
+            {
+                Service = "comprehend",
+                Action = "detectSentiment",
+                Parameters = new Dictionary<string, object>(2)
                     {
                         {"LanguageCode", "en"},
                         {
-                            "Text", JsonPath.StringAt("$.detail.reviewContents")
+                            "Text", JsonPath.StringAt("$.reviewContents")
                         }
                     },
-                    IamResources = new string[1] {"*"},
-                    ResultPath = "$.SentimentResult"
-                })
-                .Next(new Choice(this, "SentimentChoice")
+                IamResources = new string[1] { "*" },
+                ResultPath = "$.SentimentResult"
+            }).Next(new Choice(this, "SentimentChoice")
                     .When(Condition.NumberGreaterThan("$.SentimentResult.SentimentScore.Positive", 0.95), new EventBridgePutEvents(this, "PublishPositiveEvent", new EventBridgePutEventsProps()
                     {
                         Entries = new EventBridgePutEventsEntry[1]
                         {
                             new EventBridgePutEventsEntry
                             {
-                                Detail = TaskInput.FromJsonPathAt("$.detail"),
+                                Detail = TaskInput.FromObject(new Dictionary<string, object>(7)
+                                {
+                                    { "dominantLanguage", JsonPath.StringAt("$.dominantLanguage") },
+                                    { "reviewIdentifier", JsonPath.StringAt("$.reviewIdentifier") },
+                                    { "reviewId", JsonPath.StringAt("$.reviewId") },
+                                    { "emailAddress", JsonPath.StringAt("$.emailAddress") },
+                                    { "reviewContents", JsonPath.StringAt("$.reviewContents") },
+                                    { "originalReviewContents", JsonPath.StringAt("$.originalReviewContents") },
+                                    { "sentimentScore", JsonPath.StringAt("$.SentimentResult.SentimentScore.Positive") },
+                                }),
                                 DetailType = "positive-review",
                                 Source = "event-driven-cdk.sentiment-analysis",
                                 EventBus = props.CentralEventBus
@@ -55,7 +63,16 @@ namespace EventDrivenCdk
                         {
                             new EventBridgePutEventsEntry
                             {
-                                Detail = TaskInput.FromJsonPathAt("$.detail"),
+                                Detail = TaskInput.FromObject(new Dictionary<string, object>(4)
+                                {
+                                    { "dominantLanguage", JsonPath.StringAt("$.dominantLanguage") },
+                                    { "reviewIdentifier", JsonPath.StringAt("$.reviewIdentifier") },
+                                    { "reviewId", JsonPath.StringAt("$.reviewId") },
+                                    { "emailAddress", JsonPath.StringAt("$.emailAddress") },
+                                    { "reviewContents", JsonPath.StringAt("$.reviewContents") },
+                                    { "originalReviewContents", JsonPath.StringAt("$.originalReviewContents") },
+                                    { "sentimentScore", JsonPath.StringAt("$.SentimentResult.SentimentScore.Negative") },
+                                }),
                                 DetailType = "negative-review",
                                 Source = "event-driven-cdk.sentiment-analysis",
                                 EventBus = props.CentralEventBus
@@ -63,6 +80,60 @@ namespace EventDrivenCdk
                         }
                     }))
                     .Otherwise(new Pass(this, "UnknownSentiment")));
+
+            var analyseSentiment = new CallAwsService(this, "DetectReviewLanguage", new CallAwsServiceProps()
+            {
+                Service = "comprehend",
+                Action = "detectDominantLanguage",
+                Parameters = new Dictionary<string, object>(2)
+                    {
+                        {
+                            "Text", JsonPath.StringAt("$.detail.reviewContents")
+                        }
+                    },
+                IamResources = new string[1] { "*" },
+                ResultPath = "$.DominantLanguage"
+            })
+                .Next(new Pass(this, "FormatResult", new PassProps()
+                {
+                    Parameters = new Dictionary<string, object>(4)
+                    {
+                        { "dominantLanguage", JsonPath.StringAt("$.DominantLanguage.Languages[0].LanguageCode") },
+                        { "reviewIdentifier", JsonPath.StringAt("$.detail.reviewIdentifier") },
+                        { "reviewId", JsonPath.StringAt("$.detail.reviewId") },
+                        { "emailAddress", JsonPath.StringAt("$.detail.emailAddress") },
+                        { "reviewContents", JsonPath.StringAt("$.detail.reviewContents") },
+                        { "originalReviewContents", JsonPath.StringAt("$.detail.reviewContents") },
+                    }
+                }))
+                .Next(new Choice(this, "TranslateNonEnLanguage")
+                    .When(Condition.Not(Condition.StringEquals(JsonPath.StringAt("$.dominantLanguage"), "en")), new CallAwsService(this, "TranslateNonEn", new CallAwsServiceProps()
+                    {
+                        Service = "translate",
+                        Action = "translateText",
+                        Parameters = new Dictionary<string, object>(3)
+                        {
+                            { "SourceLanguageCode", JsonPath.StringAt("$.dominantLanguage") },
+                            { "TargetLanguageCode", "en" },
+                            { "Text", JsonPath.StringAt("$.reviewContents") },
+                        },
+                        IamResources = new string[1] { "*" },
+                        ResultPath = "$.Translation"
+                    })
+                    .Next(new Pass(this, "AddTranslatedTextToState", new PassProps()
+                    {
+                        Parameters = new Dictionary<string, object>(4)
+                    {
+                        { "dominantLanguage", JsonPath.StringAt("$.dominantLanguage") },
+                        { "reviewIdentifier", JsonPath.StringAt("$.reviewIdentifier") },
+                        { "reviewId", JsonPath.StringAt("$.reviewId") },
+                        { "emailAddress", JsonPath.StringAt("$.emailAddress") },
+                        { "reviewContents", JsonPath.StringAt("$.Translation.TranslatedText") },
+                        { "originalReviewContents", JsonPath.StringAt("$.reviewContents") },
+                    }
+                    }))
+                    .Next(sentimentAnalysisChain))
+                    .Otherwise(sentimentAnalysisChain));
             
             var stateMachine = new StateMachine(this, "SentimentAnalysisStateMachine", new StateMachineProps
             {
