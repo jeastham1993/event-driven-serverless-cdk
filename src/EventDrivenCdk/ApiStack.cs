@@ -90,7 +90,8 @@ namespace EventDrivenCdk
                                 {"reviewId", JsonPath.StringAt("$.reviewIdentifier.reviewId.attributeValue.S") },
                                 {"reviewIdentifier", JsonPath.StringAt("$.body.reviewIdentifier") },
                                 {"emailAddress", JsonPath.StringAt("$.body.emailAddress") },
-                                {"reviewContents", JsonPath.StringAt("$.body.reviewContents") }
+                                {"reviewContents", JsonPath.StringAt("$.body.reviewContents") },
+                                { "type", "newReview" },
                             }),
                             DetailType = "new-review",
                             Source = "event-driven-cdk.api",

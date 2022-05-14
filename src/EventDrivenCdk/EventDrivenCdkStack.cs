@@ -27,6 +27,11 @@ namespace EventDrivenCdk
                 CentralEventBus = sharedStack.CentralEventBus
             });
 
+            var eventAuditor = new EventAuditService(this, "EventAuditService", new EventAuditServiceProps()
+            {
+                CentralEventBus = sharedStack.CentralEventBus
+            });
+
             // var orderIdTable = new Table(this, "OrderIdTable", new TableProps()
             // {
             //     PartitionKey = new Attribute()
