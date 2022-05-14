@@ -42,7 +42,7 @@ namespace EventDrivenCdk
                 },
                 Key = new Dictionary<string, DynamoAttributeValue>(1)
                 {
-                    {"PK", DynamoAttributeValue.FromString("reviewId")}
+                    {"PK", DynamoAttributeValue.FromString("reviewId")},
                 },
                 ResultSelector = new Dictionary<string, object>()
                 {
@@ -64,6 +64,10 @@ namespace EventDrivenCdk
                                     DynamoAttributeValue.FromString(JsonPath.StringAt("$.body.reviewIdentifier"))
                                 },
                                 {
+                                    "reviewId",
+                                    DynamoAttributeValue.FromString(JsonPath.StringAt("$.reviewIdentifier.reviewId.attributeValue.S"))
+                                },
+                                {
                                     "emailAddress",
                                     DynamoAttributeValue.FromString(JsonPath.StringAt("$.body.emailAddress"))
                                 },
@@ -81,13 +85,29 @@ namespace EventDrivenCdk
                     {
                         new EventBridgePutEventsEntry
                         {
-                            Detail = TaskInput.FromJsonPathAt("$.body"),
+                            Detail = TaskInput.FromObject(new Dictionary<string, object>(1)
+                            {
+                                {"reviewId", JsonPath.StringAt("$.reviewIdentifier.reviewId.attributeValue.S") },
+                                {"reviewIdentifier", JsonPath.StringAt("$.body.reviewIdentifier") },
+                                {"emailAddress", JsonPath.StringAt("$.body.emailAddress") },
+                                {"reviewContents", JsonPath.StringAt("$.body.reviewContents") }
+                            }),
                             DetailType = "new-review",
                             Source = "event-driven-cdk.api",
                             EventBus = props.CentralEventBridge
                         }
                     },
                     ResultPath = "$.eventOutput",
+                }))
+                .Next(new Pass(this, "FormatHTTPresponse", new PassProps()
+                {
+                    Parameters = new Dictionary<string, object>(1)
+                    {
+                        {"reviewId", JsonPath.StringAt("$.reviewIdentifier.reviewId.attributeValue.S") },
+                        {"reviewIdentifier", JsonPath.StringAt("$.body.reviewIdentifier") },
+                        {"emailAddress", JsonPath.StringAt("$.body.emailAddress") },
+                        {"reviewContents", JsonPath.StringAt("$.body.reviewContents") }
+                    }
                 })));
 
             var stateMachine = new StateMachine(this, "ApiStateMachine", new StateMachineProps
