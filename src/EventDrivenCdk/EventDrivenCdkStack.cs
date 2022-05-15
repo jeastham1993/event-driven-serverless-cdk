@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Amazon.CDK;
+using Amazon.CDK.AWS.AutoScaling;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.SAM;
@@ -31,6 +32,12 @@ namespace EventDrivenCdk
             {
                 CentralEventBus = sharedStack.CentralEventBus
             });
+
+            var notificationService = new NotificationService(this, "NotificationService",
+                new NotificationServiceProps()
+                {
+                    CentralEventBus = sharedStack.CentralEventBus
+                });
 
             // var orderIdTable = new Table(this, "OrderIdTable", new TableProps()
             // {
