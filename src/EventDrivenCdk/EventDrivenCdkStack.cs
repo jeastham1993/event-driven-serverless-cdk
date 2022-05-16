@@ -8,6 +8,7 @@ using Amazon.CDK.AWS.SAM;
 using Amazon.CDK.AWS.SNS;
 using Amazon.CDK.AWS.SNS.Subscriptions;
 using Constructs;
+using EventDrivenCdk.CustomerContactService;
 using Newtonsoft.Json.Linq;
 
 namespace EventDrivenCdk
@@ -35,6 +36,12 @@ namespace EventDrivenCdk
 
             var notificationService = new NotificationService(this, "NotificationService",
                 new NotificationServiceProps()
+                {
+                    CentralEventBus = sharedStack.CentralEventBus
+                });
+
+            var customerContactService = new CustomerContactService.CustomerContactService(this,
+                "CustomerContactService", new CustomerContactServiceProps()
                 {
                     CentralEventBus = sharedStack.CentralEventBus
                 });

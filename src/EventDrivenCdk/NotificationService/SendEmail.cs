@@ -10,15 +10,14 @@ namespace EventDrivenCdk
         public string To { get; set; }
         public string Subject { get; set; }
         public string Body { get; set; }
-        public string UniqueIdentifier { get; set; }
     }
     
-    public static class WorkflowManager
+    public static class WorkflowStepBuilder
     {
         public static CallAwsService SendEmail(Construct scope, string id, SendEmailProps props)
         {
             return new CallAwsService(
-                scope, props.UniqueIdentifier,
+                scope, id,
                 new CallAwsServiceProps()
                 {
                     Service = "ses",
@@ -31,7 +30,7 @@ namespace EventDrivenCdk
                                 {"ToAddresses", JsonPath.Array(props.To)}
                             }
                         },
-                        {"Source", "jamesuk@amazon.co.uk"},
+                        {"Source", props.To},
                         {
                             "Message", new Dictionary<string, object>()
                             {

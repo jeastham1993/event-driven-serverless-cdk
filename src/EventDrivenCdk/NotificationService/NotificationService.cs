@@ -21,21 +21,19 @@ namespace EventDrivenCdk
         {
             var choice = new Choice(this, "EventTypeChoice")
                 .When(Condition.StringEquals(JsonPath.StringAt("$.detail.type"), "positiveReview"),
-                    WorkflowManager.SendEmail(this, "SendPositiveEmail", new SendEmailProps()
+                    WorkflowStepBuilder.SendEmail(this, "SendPositiveEmail", new SendEmailProps()
                     {
                         To = JsonPath.StringAt("$.detail.emailAddress"),
                         Subject = "Thankyou for your review",
                         Body = "Thankyou for your positive review",
-                        UniqueIdentifier = "SendPositiveEmail"
                     }))
                 .When(Condition.StringEquals(JsonPath.StringAt("$.detail.type"), "negativeReview"),
-                    WorkflowManager.SendEmail(this, "SendNegativeEmail", new SendEmailProps()
+                    WorkflowStepBuilder.SendEmail(this, "SendNegativeEmail", new SendEmailProps()
                     {
                         To = JsonPath.StringAt("$.detail.emailAddress"),
                         Subject = "Sorry!",
                         Body =
                             "I'm sorry our product didn't meet your satisfaction. One of our customer service agents will be in touch shortly",
-                        UniqueIdentifier = "SendNegativeEmail"
                     }));
             
             var stateMachine = new StateMachine(this, "NotificationServiceStateMachine", new StateMachineProps
