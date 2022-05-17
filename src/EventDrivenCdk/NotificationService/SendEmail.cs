@@ -3,7 +3,7 @@ using Amazon.CDK.AWS.StepFunctions;
 using Amazon.CDK.AWS.StepFunctions.Tasks;
 using Constructs;
 
-namespace EventDrivenCdk
+namespace EventDrivenCdk.NotificationService
 {
     public class SendEmailProps
     {
@@ -12,7 +12,7 @@ namespace EventDrivenCdk
         public string Body { get; set; }
     }
     
-    public static class WorkflowStepBuilder
+    public static class WorkflowStep
     {
         public static CallAwsService SendEmail(Construct scope, string id, SendEmailProps props)
         {

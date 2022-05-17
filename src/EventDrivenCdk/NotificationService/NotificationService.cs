@@ -8,7 +8,7 @@ using Constructs;
 using Newtonsoft.Json;
 using EventBus = Amazon.CDK.AWS.Events.EventBus;
 
-namespace EventDrivenCdk
+namespace EventDrivenCdk.NotificationService
 {
     public class NotificationServiceProps
     {
@@ -21,14 +21,14 @@ namespace EventDrivenCdk
         {
             var choice = new Choice(this, "EventTypeChoice")
                 .When(Condition.StringEquals(JsonPath.StringAt("$.detail.type"), "positiveReview"),
-                    WorkflowStepBuilder.SendEmail(this, "SendPositiveEmail", new SendEmailProps()
+                    WorkflowStep.SendEmail(this, "SendPositiveEmail", new SendEmailProps()
                     {
                         To = JsonPath.StringAt("$.detail.emailAddress"),
                         Subject = "Thankyou for your review",
                         Body = "Thankyou for your positive review",
                     }))
                 .When(Condition.StringEquals(JsonPath.StringAt("$.detail.type"), "negativeReview"),
-                    WorkflowStepBuilder.SendEmail(this, "SendNegativeEmail", new SendEmailProps()
+                    WorkflowStep.SendEmail(this, "SendNegativeEmail", new SendEmailProps()
                     {
                         To = JsonPath.StringAt("$.detail.emailAddress"),
                         Subject = "Sorry!",

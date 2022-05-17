@@ -9,6 +9,8 @@ using Amazon.CDK.AWS.SNS;
 using Amazon.CDK.AWS.SNS.Subscriptions;
 using Constructs;
 using EventDrivenCdk.CustomerContactService;
+using EventDrivenCdk.NotificationService;
+using EventDrivenCdk.ReviewAnalysisService;
 using Newtonsoft.Json.Linq;
 
 namespace EventDrivenCdk
@@ -24,7 +26,7 @@ namespace EventDrivenCdk
                 CentralEventBridge = sharedStack.CentralEventBus
             });
             
-            var sentimentAnalysis = new SentimentAnalysisServiceStack(this, "SentimentAnalysis", new SentimentAnalysisServiceStackProps()
+            var sentimentAnalysis = new ReviewAnalysisService.ReviewAnalysisService(this, "SentimentAnalysis", new ReviewAnalysisServiceProps()
             {
                 CentralEventBus = sharedStack.CentralEventBus
             });
@@ -34,7 +36,7 @@ namespace EventDrivenCdk
                 CentralEventBus = sharedStack.CentralEventBus
             });
 
-            var notificationService = new NotificationService(this, "NotificationService",
+            var notificationService = new NotificationService.NotificationService(this, "NotificationService",
                 new NotificationServiceProps()
                 {
                     CentralEventBus = sharedStack.CentralEventBus
