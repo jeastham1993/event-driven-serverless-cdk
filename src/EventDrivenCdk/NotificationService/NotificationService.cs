@@ -5,19 +5,15 @@ using Amazon.CDK.AWS.Sagemaker;
 using Amazon.CDK.AWS.StepFunctions;
 using Amazon.CDK.AWS.StepFunctions.Tasks;
 using Constructs;
+using EventDrivenCdk.SharedConstruct;
 using Newtonsoft.Json;
 using EventBus = Amazon.CDK.AWS.Events.EventBus;
 
 namespace EventDrivenCdk.NotificationService
 {
-    public class NotificationServiceProps
-    {
-        public EventBus CentralEventBus { get; set; }    
-    }
-    
     public class NotificationService : Construct
     {
-        public NotificationService(Construct scope, string id, NotificationServiceProps props) : base(scope, id)
+        public NotificationService(Construct scope, string id) : base(scope, id)
         {
             var choice = new Choice(this, "EventTypeChoice")
                 .When(Condition.StringEquals(JsonPath.StringAt("$.detail.type"), "positiveReview"),
@@ -35,28 +31,12 @@ namespace EventDrivenCdk.NotificationService
                         Body =
                             "I'm sorry our product didn't meet your satisfaction. One of our customer service agents will be in touch shortly",
                     }));
-            
-            var stateMachine = new StateMachine(this, "NotificationServiceStateMachine", new StateMachineProps
-            {
-                Definition = choice,
-                StateMachineType = StateMachineType.STANDARD
-            });
 
-            var rule = new Rule(this, "NotificationRule", new RuleProps()
-            {
-                EventBus = props.CentralEventBus,
-                RuleName = "NotificationRule",
-                EventPattern = new EventPattern()
-                {
-                    DetailType = new string[2] {"positive-review", "negative-review"},
-                    Source = new string[1] {"event-driven-cdk.sentiment-analysis"},
-                },
-                Targets = new IRuleTarget[1]
-                {
-                    new SfnStateMachine(stateMachine)
-                }
-            });
-            
+            var stateMachine = new DefaultStateMachine(this, "NotificationServiceStateMachine", choice,
+                StateMachineType.STANDARD);
+
+            CentralEventBus.AddRule(this, "NotificationRule", new string[1] {"event-driven-cdk.sentiment-analysis"},
+                new string[2] {"positive-review", "negative-review"}, stateMachine);
         }
     }
 }

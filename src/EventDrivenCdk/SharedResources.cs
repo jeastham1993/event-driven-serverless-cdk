@@ -7,6 +7,7 @@ namespace EventDrivenCdk
     public class SharedResources : Construct
     {
         public EventBus CentralEventBus { get; private set; }
+        
         public SharedResources(Construct scope, string id) : base(scope, id)
         {
             var centralEventBridge = new EventBus(this, "CentralEventBridge", new EventBusProps()
@@ -15,6 +16,8 @@ namespace EventDrivenCdk
             });
 
             this.CentralEventBus = centralEventBridge;
+
+            SharedConstruct.CentralEventBus.AddCentralEventBus(this.CentralEventBus);
         }
     }
 }
