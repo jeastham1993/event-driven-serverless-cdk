@@ -10,24 +10,19 @@ The application consists of 6 services:
 
 ### API
 
-Receives requests from a front-end application.
+A storage first API that receives requests from a front-end, stores them durably and publishes an event to notify other services that a new review has been received.
 
 ### Sentiment Analysis
 
-Service to analyze the review content and detect the sentiment.
+Service to translate the review to English if not currently in English, analyze the review content and detect the sentiment.
 
 ### Notification Service
 
-Sends email notifications back to the customer
+Sends email notifications back to the reviewer.
 
 ### Customer Contact Service
 
 Negative reviews are followed up by a customer service representitive. This service manages that customer service flow.
-
-
-### CRM service
-
-Simple API to retrieve customer information for personalised email communication.
 
 ### Event History Service
 
