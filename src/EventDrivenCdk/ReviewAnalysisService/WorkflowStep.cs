@@ -9,7 +9,7 @@ namespace EventDrivenCdk.ReviewAnalysisService
 {
     public static class WorkflowStep
     {
-        public static CallAwsService AnalyzeSentiment(Construct scope)
+        public static IChainable AnalyzeSentiment(Construct scope)
         {
             return new CallAwsService(scope, "CallSentimentAnalysis", new CallAwsServiceProps()
             {
@@ -27,7 +27,7 @@ namespace EventDrivenCdk.ReviewAnalysisService
             });
         }
 
-        public static Pass AddTranslationToState(Construct scope)
+        public static IChainable AddTranslationToState(Construct scope)
         {
             return new Pass(scope, "AddTranslatedTextToState", new PassProps()
             {
@@ -43,7 +43,7 @@ namespace EventDrivenCdk.ReviewAnalysisService
             });
         }
 
-        public static CallAwsService TranslateNonEnglishLanguage(Construct scope)
+        public static IChainable TranslateNonEnglishLanguage(Construct scope)
         {
             return new CallAwsService(scope, "TranslateNonEn", new CallAwsServiceProps()
             {
@@ -60,7 +60,7 @@ namespace EventDrivenCdk.ReviewAnalysisService
             });
         }
 
-        public static Pass FormatLanguageResults(Construct scope)
+        public static IChainable FormatLanguageResults(Construct scope)
         {
             return new Pass(scope, "FormatResult", new PassProps()
             {
@@ -76,7 +76,7 @@ namespace EventDrivenCdk.ReviewAnalysisService
             });
         }
 
-        public static CallAwsService DetectLanguage(Construct scope)
+        public static IChainable DetectLanguage(Construct scope)
         {
             return new CallAwsService(scope, "DetectReviewLanguage", new CallAwsServiceProps()
             {
@@ -93,7 +93,7 @@ namespace EventDrivenCdk.ReviewAnalysisService
             });
         }
         
-        public static EventBridgePutEvents PublishEvent(Construct scope, string stepName, string eventName, EventBus publishTo)
+        public static IChainable PublishEvent(Construct scope, string stepName, string eventName, EventBus publishTo)
         {
             return new EventBridgePutEvents(scope, stepName, new EventBridgePutEventsProps()
             {

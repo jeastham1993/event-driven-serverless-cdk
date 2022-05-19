@@ -11,14 +11,14 @@ namespace EventDrivenCdk.CustomerContactService
 {
     public static class WorkflowStep
     {
-        public static SnsPublish NotifyBadReview(Construct scope)
+        public static IChainable NotifyBadReview(Construct scope)
         {
             var negativeReviewNotification = new Topic(scope, "ReviewNotificationTopic", new TopicProps()
             {
                 DisplayName = "Negative Review Notification",
                 TopicName = "NegativeReviewNotification"
             });
-            negativeReviewNotification.AddSubscription(new EmailSubscription("jamesuk@amazon.co.uk", new EmailSubscriptionProps()
+            negativeReviewNotification.AddSubscription(new EmailSubscription("", new EmailSubscriptionProps()
             {
                 
             }));
@@ -31,7 +31,7 @@ namespace EventDrivenCdk.CustomerContactService
             });
         }
 
-        public static SqsSendMessage WaitForCustomerAgentClaim(Construct scope)
+        public static IChainable WaitForCustomerAgentClaim(Construct scope)
         {
             var awaitingClaimQueue = new Queue(scope, "AwaitingClaimQueue", new QueueProps()
             {
@@ -59,7 +59,7 @@ namespace EventDrivenCdk.CustomerContactService
             });
         }
 
-        public static DynamoPutItem StoreCustomerServiceClaim(Construct scope)
+        public static IChainable StoreCustomerServiceClaim(Construct scope)
         {
             var customerContactTable = new Table(scope, "CustomerContactClaim", new TableProps()
             {

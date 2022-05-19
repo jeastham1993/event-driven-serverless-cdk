@@ -14,7 +14,7 @@ namespace EventDrivenCdk.NotificationService
     
     public static class WorkflowStep
     {
-        public static CallAwsService SendEmail(Construct scope, string id, SendEmailProps props)
+        public static IChainable SendEmail(Construct scope, string id, SendEmailProps props)
         {
             return new CallAwsService(
                 scope, id,

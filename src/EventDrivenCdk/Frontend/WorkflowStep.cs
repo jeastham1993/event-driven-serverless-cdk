@@ -9,7 +9,7 @@ namespace EventDrivenCdk.Frontend
 {
     public static class WorkflowStep
     {
-        public static DynamoUpdateItem GenerateCaseId(Construct scope, Table apiTable)
+        public static IChainable GenerateCaseId(Construct scope, Table apiTable)
         {
             return new DynamoUpdateItem(scope, "GenerateCaseId", new DynamoUpdateItemProps()
             {
@@ -32,7 +32,7 @@ namespace EventDrivenCdk.Frontend
             });
         }
 
-        public static DynamoPutItem StoreApiData(Construct scope, Table apiTable)
+        public static IChainable StoreApiData(Construct scope, Table apiTable)
         {
             return new DynamoPutItem(scope, "StoreApiInput", new DynamoPutItemProps()
             {
@@ -67,7 +67,7 @@ namespace EventDrivenCdk.Frontend
             });
         }
 
-        public static EventBridgePutEvents PublishNewApiRequestEvent(Construct scope, EventBus publishTo)
+        public static IChainable PublishNewApiRequestEvent(Construct scope, EventBus publishTo)
         {
             return new EventBridgePutEvents(scope, "PublishEvent", new EventBridgePutEventsProps()
             {
