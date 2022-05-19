@@ -14,7 +14,8 @@ namespace EventDrivenCdk.EventAuditService
     {
         public EventAuditService(Construct scope, string id) : base(scope, id)
         {
-            var apiTable = new Table(this, "EventAuditStore", new TableProps()
+            // Create table to strore event audit data.
+            var auditTable = new Table(this, "EventAuditStore", new TableProps()
             {
                 TableName = "EventAuditStore",
                 PartitionKey = new Attribute()
@@ -30,9 +31,10 @@ namespace EventDrivenCdk.EventAuditService
                 BillingMode = BillingMode.PAY_PER_REQUEST
             });
 
+            // Simple workflow to take event bridge input and store in dynamodb.
             var sfnWorkflow = new DynamoPutItem(this, "StoreEventData", new DynamoPutItemProps()
             {
-                Table = apiTable,
+                Table = auditTable,
                 Item = new Dictionary<string, DynamoAttributeValue>(3)
                 {
                     { "PK", DynamoAttributeValue.FromString(JsonPath.StringAt("$.detail.reviewId")) },
@@ -44,6 +46,7 @@ namespace EventDrivenCdk.EventAuditService
             var stateMachine =
                 new DefaultStateMachine(this, "EventAuditStateMachine", sfnWorkflow, StateMachineType.EXPRESS);
 
+            // Add rule to the central event bus.
             CentralEventBus.AddRule(this, "EventAuditRule",
                 new string[2] {"event-driven-cdk.api", "event-driven-cdk.sentiment-analysis"}, stateMachine);
         }
