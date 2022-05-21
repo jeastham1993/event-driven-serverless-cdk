@@ -24,6 +24,13 @@ Sends email notifications back to the reviewer.
 
 Negative reviews are followed up by a customer service representitive. This service manages that customer service flow.
 
+Under the src/CustomerInteractionManager folder there is a console application that can be used to claim negative customer service reviews. This will allow you to continue the customer service workflow.
+
+```
+cd src/CustomerInteractionManager
+dotnet run
+```
+
 ### Event History Service
 
 An audit service, to store all events relating to a given review.
