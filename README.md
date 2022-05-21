@@ -4,7 +4,7 @@ This project contains an example of building an AWS native, event driven, custom
 
 ## Architecture
 
-![](./assets/architecture.PNG)
+![](./assets/architecture.png)
 
 The application consists of 6 services:
 
@@ -30,8 +30,19 @@ An audit service, to store all events relating to a given review.
 
 ## Deployment
 
+Before you deploy the application you will first need to add the email address to be used for customer service notifications. Ensure that the AWS account you deploy the stack to has permissions to send email to the email address used.
+
+### Add Email
+
+1) Open src/EventDrivenCdk/CustomerContactService/WorkflowStep.cs
+2) Add your email address to the AddSubscription line
+```
+negativeReviewNotification.AddSubscription(new EmailSubscription("", new EmailSubscriptionProps()
+```
+
 The entire application can be deployed by running the below command from the root directory.
 
 ```
+cdk bootstrap
 cdk deploy
 ```
