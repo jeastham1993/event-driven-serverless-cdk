@@ -35,10 +35,14 @@ namespace EventDrivenCdk.Frontend
 
             // Define the business workflow to integrate with the HTTP request, generate the case id
             // store and publish.
-            var stateMachine = new DefaultStateMachine(this, "ApiStateMachine", WorkflowStep
-                .GenerateCaseId(this, apiTable)
+            var stateMachine = new DefaultStateMachine(this, "ApiStateMachine",
+                // Generate a case id that can be returned to the frontend
+                WorkflowStep.GenerateCaseId(this, apiTable)
+                // Store the API data
                 .Next(WorkflowStep.StoreApiData(this, apiTable))
+                // Publish the new request event
                 .Next(WorkflowStep.PublishNewApiRequestEvent(this, props.CentralEventBridge))
+                // Format the HTTP response to return to the front end
                 .Next(WorkflowStep.FormatStateForHttpResponse(this)), StateMachineType.EXPRESS);
             
             stateMachine.AddToRolePolicy(new PolicyStatement(new PolicyStatementProps()

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Amazon.CDK.AWS.Events;
 using Amazon.CDK.AWS.StepFunctions;
 using Amazon.CDK.AWS.StepFunctions.Tasks;
 using Constructs;
@@ -14,7 +15,7 @@ namespace EventDrivenCdk.NotificationService
     
     public static class WorkflowStep
     {
-        public static IChainable SendEmail(Construct scope, string id, SendEmailProps props)
+        public static CallAwsService SendEmail(Construct scope, string id, SendEmailProps props)
         {
             return new CallAwsService(
                 scope, id,
@@ -67,7 +68,30 @@ namespace EventDrivenCdk.NotificationService
                         }
                     },
                     IamResources = new string[1] {"*"},
+                    ResultPath = "$.SendEmailResult"
                 });
+        }
+        
+        public static EventBridgePutEvents PublishEvent(Construct scope, string stepName, string eventName, EventBus publishTo)
+        {
+            return new EventBridgePutEvents(scope, stepName, new EventBridgePutEventsProps()
+            {
+                Entries = new EventBridgePutEventsEntry[1]
+                {
+                    new EventBridgePutEventsEntry
+                    {
+                        Detail = TaskInput.FromObject(new Dictionary<string, object>(7)
+                        {
+                            {"reviewId", JsonPath.StringAt("$.detail.reviewId")},
+                            {"emailAddress", JsonPath.StringAt("$.detail.emailAddress")},
+                            {"type", eventName},
+                        }),
+                        DetailType = eventName,
+                        Source = "event-driven-cdk.notifications",
+                        EventBus = publishTo
+                    }
+                }
+            });
         }
     }
 }

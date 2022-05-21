@@ -1,12 +1,8 @@
 using Amazon.CDK;
 using Constructs;
-using EventDrivenCdk.CustomerContactService;
-using EventDrivenCdk.EventAuditService;
 using EventDrivenCdk.Frontend;
 using EventDrivenCdk.NotificationService;
 using EventDrivenCdk.ReviewAnalysisService;
-using EventDrivenCdk.EventAuditService;
-using Newtonsoft.Json.Linq;
 
 namespace EventDrivenCdk
 {
@@ -28,7 +24,10 @@ namespace EventDrivenCdk
 
             var eventAuditor = new EventAuditService.EventAuditService(this, "EventAuditService");
 
-            var notificationService = new NotificationService.NotificationService(this, "NotificationService");
+            var notificationService = new NotificationService.NotificationService(this, "NotificationService", new NotificationServiceProps()
+            {
+                CentralEventBus = sharedStack.CentralEventBus
+            });
 
             var customerContactService = new CustomerContactService.CustomerContactService(this,
                 "CustomerContactService");

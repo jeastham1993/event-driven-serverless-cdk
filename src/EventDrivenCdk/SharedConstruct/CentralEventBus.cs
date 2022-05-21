@@ -1,8 +1,10 @@
-﻿using System.Reflection.Metadata;
+﻿using System.Collections.Generic;
+using System.Reflection.Metadata;
 using Amazon.CDK.AWS.ElasticLoadBalancingV2;
 using Amazon.CDK.AWS.Events;
 using Amazon.CDK.AWS.Events.Targets;
 using Amazon.CDK.AWS.StepFunctions;
+using Amazon.CDK.AWS.StepFunctions.Tasks;
 using Constructs;
 using EventBus = Amazon.CDK.AWS.Events.EventBus;
 
@@ -67,6 +69,24 @@ namespace EventDrivenCdk.SharedConstruct
                 {
                     new SfnStateMachine(workflow)
                 }
+            });
+        }
+        
+        public static EventBridgePutEvents PublishEvent(Construct scope, string stepName, string eventSource, string eventName, TaskInput eventDetail)
+        {
+            return new EventBridgePutEvents(scope, stepName, new EventBridgePutEventsProps()
+            {
+                Entries = new EventBridgePutEventsEntry[1]
+                {
+                    new EventBridgePutEventsEntry
+                    {
+                        Detail = eventDetail,
+                        DetailType = eventName,
+                        Source = eventSource,
+                        EventBus = _centralEventBus
+                    }
+                },
+                ResultPath = "$.eventPublishResult"
             });
         }
     }

@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="AWSSDK.SQS" Version="3.7.2.57" />
       <PackageReference Include="AWSSDK.StepFunctions" Version="3.7.0.158" />
     </ItemGroup>
 

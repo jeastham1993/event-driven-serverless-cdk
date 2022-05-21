@@ -24,9 +24,12 @@ namespace EventDrivenCdk.ReviewAnalysisService
         {
             // Define workflow module to run sentiment analysis.
             var analyzeSentiment = WorkflowStep.AnalyzeSentiment(scope)
+                // Publish a different event type depending on the sentiment results
                 .Next(new Choice(this, "SentimentChoice")
-                    .When(Condition.NumberGreaterThan("$.SentimentResult.SentimentScore.Positive", 0.95), WorkflowStep.PublishEvent(this, "PublishPositiveEvent", "positiveReview", props.CentralEventBus))
-                    .When(Condition.NumberGreaterThan("$.SentimentResult.SentimentScore.Negative", 0.95), WorkflowStep.PublishEvent(this, "PublishNegativeEvent", "negativeReview", props.CentralEventBus))
+                    .When(Condition.NumberGreaterThan("$.SentimentResult.SentimentScore.Positive", 0.95), 
+                        WorkflowStep.PublishEvent(this, "PublishPositiveEvent", "positiveReview", props.CentralEventBus))
+                    .When(Condition.NumberGreaterThan("$.SentimentResult.SentimentScore.Negative", 0.95), 
+                        WorkflowStep.PublishEvent(this, "PublishNegativeEvent", "negativeReview", props.CentralEventBus))
                     .Otherwise(new Pass(this, "UnknownSentiment")));
 
             // Define workflow to run translation and call sentiment analysis module.
@@ -39,11 +42,14 @@ namespace EventDrivenCdk.ReviewAnalysisService
                         .Next(analyzeSentiment))
                     .Otherwise(analyzeSentiment));
 
-            var stateMachine = new DefaultStateMachine(this, "SentimentAnalysisStateMachine", analyseSentiment,
+            var stateMachine = new DefaultStateMachine(
+                this, 
+                "SentimentAnalysisStateMachine",
+                analyseSentiment,
                 StateMachineType.STANDARD);
 
             // Add rule to event bus.
-            CentralEventBus.AddRule(this, "TriggerSentimentAnalysisRule", "event-driven-cdk.api", "new-review",
+            CentralEventBus.AddRule(this, "TriggerSentimentAnalysisRule", "event-driven-cdk.api", "newReview",
                 stateMachine);
         }
     }

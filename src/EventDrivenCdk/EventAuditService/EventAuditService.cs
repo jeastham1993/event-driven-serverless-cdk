@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
 using Amazon.CDK.AWS.DynamoDB;
-using Amazon.CDK.AWS.Events;
-using Amazon.CDK.AWS.Events.Targets;
 using Amazon.CDK.AWS.StepFunctions;
 using Amazon.CDK.AWS.StepFunctions.Tasks;
 using Constructs;
 using EventDrivenCdk.SharedConstruct;
-using EventBus = Amazon.CDK.AWS.Events.EventBus;
 
 namespace EventDrivenCdk.EventAuditService
 {
@@ -14,7 +11,7 @@ namespace EventDrivenCdk.EventAuditService
     {
         public EventAuditService(Construct scope, string id) : base(scope, id)
         {
-            // Create table to strore event audit data.
+            // Create table to store event audit data.
             var auditTable = new Table(this, "EventAuditStore", new TableProps()
             {
                 TableName = "EventAuditStore",
@@ -48,7 +45,7 @@ namespace EventDrivenCdk.EventAuditService
 
             // Add rule to the central event bus.
             CentralEventBus.AddRule(this, "EventAuditRule",
-                new string[2] {"event-driven-cdk.api", "event-driven-cdk.sentiment-analysis"}, stateMachine);
+                new string[4] {"event-driven-cdk.api", "event-driven-cdk.sentiment-analysis", "event-driven-cdk.notifications", "event-driven-cdk.customer-service"}, stateMachine);
         }
     }
 }
