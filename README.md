@@ -4,6 +4,8 @@ This project contains an example of building an AWS native, event driven, custom
 
 ## Architecture
 
+The intention of this application is to show the art of the possible, that does not necessarily mean this would be replicated directly into a production system. AWS Lambda still has a place in the serverless world, these Step Functions show the possibilities.
+
 ![](./assets/architecture.png)
 
 The application consists of 6 services:
@@ -12,9 +14,13 @@ The application consists of 6 services:
 
 A storage first API that receives requests from a front-end, stores them durably and publishes an event to notify other services that a new review has been received.
 
+This storage first API utilises the native service integrations between Amazon API Gateway and Step Functions to pass the HTTP request directly to a step functions execution. The workkflow stores the request to DynamoDB and then publishes an event to notify other services that an API request has been received.
+
 ### Sentiment Analysis
 
 Service to translate the review to English if not currently in English, analyze the review content and detect the sentiment.
+
+This service demonstrates the true power of Amazon Step Functions. There are native service integrations with Amazon Comprehend and Translate. The workflow is also invoked directly from an Amazon Event Bridge rule.
 
 ### Notification Service
 
@@ -22,7 +28,7 @@ Sends email notifications back to the reviewer.
 
 ### Customer Contact Service
 
-Negative reviews are followed up by a customer service representitive. This service manages that customer service flow.
+Negative reviews are followed up by a customer service representative. This service manages that customer service flow.
 
 Under the src/CustomerInteractionManager folder there is a console application that can be used to claim negative customer service reviews. This will allow you to continue the customer service workflow.
 
@@ -33,7 +39,7 @@ dotnet run
 
 ### Event History Service
 
-An audit service, to store all events relating to a given review.
+An audit service, to store all events to a DynamoDB table.
 
 ## Deployment
 
@@ -47,6 +53,7 @@ Before you deploy the application you will first need to add the email address t
 negativeReviewNotification.AddSubscription(new EmailSubscription("", new EmailSubscriptionProps()
 ```
 
+### Deploy
 The entire application can be deployed by running the below command from the root directory.
 
 ```
