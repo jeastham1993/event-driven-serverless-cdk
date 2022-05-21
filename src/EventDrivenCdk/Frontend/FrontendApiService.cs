@@ -61,6 +61,13 @@ namespace EventDrivenCdk.Frontend
             {
                 StateMachine = stateMachine,
             });
+
+            var output = new CfnOutput(this, "ApiEndpoint", new CfnOutputProps()
+            {
+                ExportName = "APIEndpoint",
+                Description = "The endpoint for the created API",
+                Value = api.Url
+            });
         }
     }
 }

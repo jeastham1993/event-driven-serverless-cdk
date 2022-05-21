@@ -60,3 +60,27 @@ The entire application can be deployed by running the below command from the roo
 cdk bootstrap
 cdk deploy
 ```
+
+## Test
+
+Below are sample API request bodies you can use to test positive and negative workflows.
+
+Tests can be executed using the API testing tool of your choice. On deployment the CDK project will output the URL endpoint to use. Make a POST request to the root endpoint using the schema below.
+
+### Positive
+```json
+{
+    "reviewIdentifier": "test",
+    "emailAddress": "",
+    "reviewContents": "This is a great demo of CDK native integrations."
+}
+```
+
+### Negative
+```json
+{
+  "reviewIdentifier": "test",
+  "emailAddress": "eventdrivencdk@gmail.com",
+  "reviewContents": "Esta no es una muy buena demostración, viva Lambda"
+}
+```
