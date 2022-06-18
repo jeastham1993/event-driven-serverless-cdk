@@ -7,6 +7,7 @@ using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Logs;
 using Amazon.CDK.AWS.StepFunctions;
 using Amazon.CDK.AWS.StepFunctions.Tasks;
+using Amazon.CDK.CustomResources;
 using Constructs;
 using EventDrivenCdk.SharedConstruct;
 
@@ -60,6 +61,55 @@ namespace EventDrivenCdk.Frontend
             var api = new StepFunctionsRestApi(this, "StepFunctionsRestApi", new StepFunctionsRestApiProps
             {
                 StateMachine = stateMachine,
+            });
+
+            var populateCaseIdTable = new AwsCustomResource(this, "GenerateInitialCaseId", new AwsCustomResourceProps()
+            {
+                OnCreate = new AwsSdkCall()
+                {
+                    Service = "dynamodb",
+                    Action = "put-item",
+                    PhysicalResourceId = PhysicalResourceId.Of(apiTable.TableName),
+                    Parameters = new Dictionary<string, object>()
+                    {
+                        {"TableName", apiTable.TableName},
+                        {
+                            "Item", new Dictionary<string, object>()
+                            {
+                                {
+                                    "PK", new Dictionary<string, object>()
+                                    {
+                                        {"S", "reviewId"}
+                                    }
+                                },
+                                {
+                                    "IDvalue", new Dictionary<string, object>()
+                                    {
+                                        {"N", "1"}
+                                    }
+                                },
+                            }
+                        }
+                    }
+                },
+                LogRetention = RetentionDays.ONE_DAY,
+                Policy = AwsCustomResourcePolicy.FromStatements(new PolicyStatement[1]
+                {
+                    new PolicyStatement(new PolicyStatementProps()
+                    {
+                        Sid = "DynamoWriteAccess",
+                        Effect = Effect.ALLOW,
+                        Actions = new[]
+                        {
+                            "dynamodb:PutItem",
+                        },
+                        Resources = new[]
+                        {
+                            apiTable.TableArn
+                        }
+                    })
+                }),
+                Timeout = Duration.Minutes(5)
             });
 
             var output = new CfnOutput(this, "ApiEndpoint", new CfnOutputProps()
