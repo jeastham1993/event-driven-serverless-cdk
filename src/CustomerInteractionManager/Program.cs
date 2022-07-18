@@ -11,12 +11,12 @@ using CustomerInteractionManager;
 
 var client = new AmazonStepFunctionsClient(new AmazonStepFunctionsConfig()
 {
-    RegionEndpoint = RegionEndpoint.EUWest2
+    RegionEndpoint = RegionEndpoint.EUWest1
 });
 
 var sqsClient = new AmazonSQSClient(new AmazonSQSConfig()
 {
-    RegionEndpoint = RegionEndpoint.EUWest2
+    RegionEndpoint = RegionEndpoint.EUWest1
 });
 
 var queueUrl = sqsClient.ListQueuesAsync("AwaitingClaim").Result.QueueUrls[0];
