@@ -9,9 +9,9 @@ namespace EventDrivenCdk.Frontend
 {
     public static class WorkflowStep
     {
-        public static DynamoUpdateItem GenerateCaseId(Construct scope, Table apiTable)
+        public static DynamoUpdateItem GenerateCaseId(Construct scope, Table apiTable, string identifier)
         {
-            return new DynamoUpdateItem(scope, "GenerateCaseId", new DynamoUpdateItemProps()
+            return new DynamoUpdateItem(scope, $"GenerateCaseId_{identifier}", new DynamoUpdateItemProps()
             {
                 Table = apiTable,
                 ReturnValues = DynamoReturnValues.UPDATED_NEW,
@@ -30,6 +30,20 @@ namespace EventDrivenCdk.Frontend
                 },
                 ResultPath = "$.reviewIdentifier",
             });
+        }
+
+        public static Chain HandleMissingReviewIdError(Construct scope, Table apiTable, Chain nextChain)
+        {
+            return new DynamoPutItem(scope, "HandleMissingReviewId", new DynamoPutItemProps()
+            {
+                Table = apiTable,
+                ResultPath = "$.putOutput",
+                Item = new Dictionary<string, DynamoAttributeValue>(1)
+                {
+                    {"PK", DynamoAttributeValue.FromString("reviewId")},
+                    {"IDvalue", DynamoAttributeValue.FromNumber(1)},
+                },
+            }).Next(WorkflowStep.GenerateCaseId(scope, apiTable, "OnRetry")).Next(nextChain);
         }
 
         public static DynamoPutItem StoreApiData(Construct scope, Table apiTable)

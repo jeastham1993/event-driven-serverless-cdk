@@ -34,17 +34,24 @@ namespace EventDrivenCdk.Frontend
                 BillingMode = BillingMode.PAY_PER_REQUEST
             });
 
+            var apiEventPublishing = WorkflowStep.StoreApiData(this, apiTable)
+                // Publish the new request event
+                .Next(WorkflowStep.PublishNewApiRequestEvent(this, props.CentralEventBridge))
+                // Format the HTTP response to return to the front end
+                .Next(WorkflowStep.FormatStateForHttpResponse(this));
+
             // Define the business workflow to integrate with the HTTP request, generate the case id
             // store and publish.
             var stateMachine = new DefaultStateMachine(this, "ApiStateMachine",
                 // Generate a case id that can be returned to the frontend
-                WorkflowStep.GenerateCaseId(this, apiTable)
+                WorkflowStep.GenerateCaseId(this, apiTable, "CaseId")
+                    .AddCatch(WorkflowStep.HandleMissingReviewIdError(this, apiTable, apiEventPublishing), new CatchProps()
+                    {
+                        Errors = new string[1] {"DynamoDB.AmazonDynamoDBException"},
+                        ResultPath = "$.errorDetails"
+                    })
                 // Store the API data
-                .Next(WorkflowStep.StoreApiData(this, apiTable))
-                // Publish the new request event
-                .Next(WorkflowStep.PublishNewApiRequestEvent(this, props.CentralEventBridge))
-                // Format the HTTP response to return to the front end
-                .Next(WorkflowStep.FormatStateForHttpResponse(this)), StateMachineType.EXPRESS);
+                .Next(apiEventPublishing), StateMachineType.EXPRESS);
             
             stateMachine.AddToRolePolicy(new PolicyStatement(new PolicyStatementProps()
             {
@@ -62,55 +69,6 @@ namespace EventDrivenCdk.Frontend
             {
                 StateMachine = stateMachine,
             });
-
-            // var populateCaseIdTable = new AwsCustomResource(this, "GenerateInitialCaseId", new AwsCustomResourceProps()
-            // {
-            //     OnCreate = new AwsSdkCall()
-            //     {
-            //         Service = "dynamodb",
-            //         Action = "put-item",
-            //         PhysicalResourceId = PhysicalResourceId.Of(apiTable.TableName),
-            //         Parameters = new Dictionary<string, object>()
-            //         {
-            //             {"TableName", apiTable.TableName},
-            //             {
-            //                 "Item", new Dictionary<string, object>()
-            //                 {
-            //                     {
-            //                         "PK", new Dictionary<string, object>()
-            //                         {
-            //                             {"S", "reviewId"}
-            //                         }
-            //                     },
-            //                     {
-            //                         "IDvalue", new Dictionary<string, object>()
-            //                         {
-            //                             {"N", "1"}
-            //                         }
-            //                     },
-            //                 }
-            //             }
-            //         }
-            //     },
-            //     LogRetention = RetentionDays.ONE_DAY,
-            //     Policy = AwsCustomResourcePolicy.FromStatements(new PolicyStatement[1]
-            //     {
-            //         new PolicyStatement(new PolicyStatementProps()
-            //         {
-            //             Sid = "DynamoWriteAccess",
-            //             Effect = Effect.ALLOW,
-            //             Actions = new[]
-            //             {
-            //                 "dynamodb:PutItem",
-            //             },
-            //             Resources = new[]
-            //             {
-            //                 apiTable.TableArn
-            //             }
-            //         })
-            //     }),
-            //     Timeout = Duration.Minutes(5)
-            // });
 
             var output = new CfnOutput(this, "ApiEndpoint", new CfnOutputProps()
             {

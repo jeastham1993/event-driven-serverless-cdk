@@ -30,30 +30,33 @@ Sends email notifications back to the reviewer.
 
 Negative reviews are followed up by a customer service representative. This service manages that customer service flow.
 
-Under the src/CustomerInteractionManager folder there is a console application that can be used to claim negative customer service reviews. This will allow you to continue the customer service workflow.
-
-```
-cd src/CustomerInteractionManager
-dotnet run
-```
-
 ### Event History Service
 
 An audit service, to store all events to a DynamoDB table.
 
-## Deployment
+## Deploy
 
-Before you deploy the application you will first need to add the email address to be used for customer service notifications. Ensure that the AWS account you deploy the stack to has permissions to send email to the email address used.
+Before you deploy the application you will first need to add the email address to be used for customer service notifications. Email sending uses SES, so ensure that the AWS account you deploy the stack to has permissions to send email to the email address used. [You can find details on verifying an email identity in the AWS documentation.](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure).
+
+If you want to disable the email notifications, you can comment on lines 21-24 in the [customer service workflow file.](src/EventDrivenCdk/CustomerContactService/WorkflowStep.cs).
+
+``` csharp
+// negativeReviewNotification.AddSubscription(new EmailSubscription("eventdrivencdk@gmail.com", new EmailSubscriptionProps()
+// {
+    
+// }));
+```
 
 ### Add Email
 
-1) Open src/EventDrivenCdk/CustomerContactService/WorkflowStep.cs
+If you do wish to enable emails enter the email identity you have verified in the customer contact service workflow:
+
+1) Open [src/EventDrivenCdk/CustomerContactService/WorkflowStep.cs](src/EventDrivenCdk/CustomerContactService/WorkflowStep.cs)
 2) Add your email address to the AddSubscription line
 ```
 negativeReviewNotification.AddSubscription(new EmailSubscription("", new EmailSubscriptionProps()
 ```
 
-### Deploy
 The entire application can be deployed by running the below command from the root directory.
 
 ```
@@ -61,11 +64,22 @@ cdk bootstrap
 cdk deploy
 ```
 
+Post deployment the CDK stack will output two parameters, one for the FrontEndApiEndpoint and the other for the AuditApiEndpoint.
+
 ## Test
+
+The repository includes a simple Blazor Server application that you can use to test the application:
+
+1. Navigate to the [EventDriven.Front folder](src/EventDriven.Front)
+2. Open the appsettings file and populate the FrontEndApiEndpoint and AuditApiEndpoint properties using the output values from the 'cdk deploy' command
+3. Run the front end application on local host using the 'dotnet run' command
+  - Note, the front-end application interacts directly with the StepFunction and SQS API's. When running the 
+  application locally ensure you have configured your default AWS credentials locally
+4. Naviate go [http://localhost:5225/](http://localhost:5225/)
 
 Below are sample API request bodies you can use to test positive and negative workflows.
 
-Tests can be executed using the API testing tool of your choice. On deployment the CDK project will output the URL endpoint to use. Make a POST request to the root endpoint using the schema below.
+Tests can be executed using the API testing tool of your choice. On deployment the CDK project will output the FrontEndApiEndpoint to use. Make a POST request to the root path using the schema below.
 
 ### Positive
 ```json

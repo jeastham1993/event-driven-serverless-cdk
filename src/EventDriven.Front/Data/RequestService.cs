@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
 
 namespace EventDriven.Front.Data
 {
@@ -7,9 +8,12 @@ namespace EventDriven.Front.Data
     {
         private readonly HttpClient httpClient;
 
-        public RequestService(HttpClient client)
+        private readonly IConfiguration _configuration;
+
+        public RequestService(HttpClient client, IConfiguration configuration)
         {
             this.httpClient = client;
+            this._configuration = configuration;
         }
 
         public async Task<CreateReviewResponse> SendRequest(string emailAddress, string submitReviewContents)
@@ -25,14 +29,14 @@ namespace EventDriven.Front.Data
 
             Console.WriteLine(json);
 
-            using var response = await httpClient.PostAsJsonAsync<CreateReviewRequest>("https://c0gyhh7e3l.execute-api.eu-west-1.amazonaws.com/prod/", request);
+            using var response = await httpClient.PostAsJsonAsync<CreateReviewRequest>(this._configuration["FrontEndApiEndpoint"], request);
 
             return JsonSerializer.Deserialize<CreateReviewResponse>(await response.Content.ReadAsStringAsync());
         }
     
         public async Task<IEnumerable<string>> GetReviewResults(string reviewId)
         {
-            var response = await httpClient.GetStringAsync($"https://fs6cbdbwtf.execute-api.eu-west-1.amazonaws.com/prod?reviewId={reviewId}");
+            var response = await httpClient.GetStringAsync($"{this._configuration["AuditApiEndpoint"]}?reviewId={reviewId}");
 
             var parsedResponseData = JsonSerializer.Deserialize<List<QueryResponse>>(response);
 

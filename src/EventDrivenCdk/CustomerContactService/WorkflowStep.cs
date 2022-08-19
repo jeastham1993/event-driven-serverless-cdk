@@ -18,7 +18,7 @@ namespace EventDrivenCdk.CustomerContactService
                 DisplayName = "Negative Review Notification",
                 TopicName = "NegativeReviewNotification"
             });
-            negativeReviewNotification.AddSubscription(new EmailSubscription("eventdrivencdk@gmail.com", new EmailSubscriptionProps()
+            negativeReviewNotification.AddSubscription(new EmailSubscription("", new EmailSubscriptionProps()
             {
                 
             }));
