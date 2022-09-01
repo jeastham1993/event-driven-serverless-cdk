@@ -34,35 +34,19 @@ namespace EventDrivenCdk.Frontend
                 BillingMode = BillingMode.PAY_PER_REQUEST
             });
 
-            var apiEventPublishing = WorkflowStep.StoreApiData(this, apiTable)
-                // Publish the new request event
-                .Next(WorkflowStep.PublishNewApiRequestEvent(this, props.CentralEventBridge))
-                // Format the HTTP response to return to the front end
-                .Next(WorkflowStep.FormatStateForHttpResponse(this));
-
             // Define the business workflow to integrate with the HTTP request, generate the case id
             // store and publish.
             var stateMachine = new DefaultStateMachine(this, "ApiStateMachine",
                 // Generate a case id that can be returned to the frontend
-                WorkflowStep.GenerateCaseId(this, apiTable, "CaseId")
-                    .AddCatch(WorkflowStep.HandleMissingReviewIdError(this, apiTable, apiEventPublishing), new CatchProps()
-                    {
-                        Errors = new string[1] {"DynamoDB.AmazonDynamoDBException"},
-                        ResultPath = "$.errorDetails"
-                    })
+                WorkflowStep.GenerateCaseId(this)
                 // Store the API data
-                .Next(apiEventPublishing), StateMachineType.EXPRESS);
-            
-            stateMachine.AddToRolePolicy(new PolicyStatement(new PolicyStatementProps()
-            {
-                Actions = new string[1] {"dynamodb:PutItem"},
-                Resources = new string[1] {apiTable.TableArn}
-            }));
-            stateMachine.AddToRolePolicy(new PolicyStatement(new PolicyStatementProps()
-            {
-                Actions = new string[1] {"events:PutEvents"},
-                Resources = new string[1] {props.CentralEventBridge.EventBusArn}
-            }));
+                .Next(WorkflowStep.StoreApiData(this, apiTable)
+                // Publish the new request event
+                .Next(WorkflowStep.PublishNewApiRequestEvent(this, props.CentralEventBridge))
+                // Format the HTTP response to return to the front end
+                .Next(WorkflowStep.FormatStateForHttpResponse(this))), StateMachineType.EXPRESS);
+
+            apiTable.GrantReadWriteData(stateMachine);
 
             // Create the API
             var api = new StepFunctionsRestApi(this, "StepFunctionsRestApi", new StepFunctionsRestApiProps

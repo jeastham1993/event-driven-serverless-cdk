@@ -9,41 +9,16 @@ namespace EventDrivenCdk.Frontend
 {
     public static class WorkflowStep
     {
-        public static DynamoUpdateItem GenerateCaseId(Construct scope, Table apiTable, string identifier)
+        public static Pass GenerateCaseId(Construct scope)
         {
-            return new DynamoUpdateItem(scope, $"GenerateCaseId_{identifier}", new DynamoUpdateItemProps()
+            return new Pass(scope, "GenerateCaseId", new PassProps()
             {
-                Table = apiTable,
-                ReturnValues = DynamoReturnValues.UPDATED_NEW,
-                UpdateExpression = "set IDvalue = IDvalue + :val",
-                ExpressionAttributeValues = new Dictionary<string, DynamoAttributeValue>(1)
+                Parameters = new Dictionary<string, object>(4)
                 {
-                    {":val", DynamoAttributeValue.FromNumber(1)}
-                },
-                Key = new Dictionary<string, DynamoAttributeValue>(1)
-                {
-                    {"PK", DynamoAttributeValue.FromString("reviewId")},
-                },
-                ResultSelector = new Dictionary<string, object>()
-                {
-                    {"reviewId", DynamoAttributeValue.FromString(JsonPath.StringAt("$.Attributes.IDvalue.N"))}
-                },
-                ResultPath = "$.reviewIdentifier",
+                    {"payload", JsonPath.EntirePayload},
+                    {"uuid.$", "States.UUID()" },
+                }
             });
-        }
-
-        public static Chain HandleMissingReviewIdError(Construct scope, Table apiTable, Chain nextChain)
-        {
-            return new DynamoPutItem(scope, "HandleMissingReviewId", new DynamoPutItemProps()
-            {
-                Table = apiTable,
-                ResultPath = "$.putOutput",
-                Item = new Dictionary<string, DynamoAttributeValue>(1)
-                {
-                    {"PK", DynamoAttributeValue.FromString("reviewId")},
-                    {"IDvalue", DynamoAttributeValue.FromNumber(1)},
-                },
-            }).Next(WorkflowStep.GenerateCaseId(scope, apiTable, "OnRetry")).Next(nextChain);
         }
 
         public static DynamoPutItem StoreApiData(Construct scope, Table apiTable)
@@ -54,26 +29,26 @@ namespace EventDrivenCdk.Frontend
                 ResultPath = "$.output",
                 Item = new Dictionary<string, DynamoAttributeValue>(1)
                 {
-                    {"PK", DynamoAttributeValue.FromString(JsonPath.StringAt("$.body.reviewIdentifier"))},
+                    {"PK", DynamoAttributeValue.FromString(JsonPath.StringAt("$.uuid"))},
                     {
                         "Data", DynamoAttributeValue.FromMap(new Dictionary<string, DynamoAttributeValue>(3)
                         {
                             {
                                 "reviewIdentifier",
-                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.body.reviewIdentifier"))
+                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.uuid"))
                             },
                             {
                                 "reviewId",
                                 DynamoAttributeValue.FromString(
-                                    JsonPath.StringAt("$.reviewIdentifier.reviewId.attributeValue.S"))
+                                    JsonPath.StringAt("$.uuid"))
                             },
                             {
                                 "emailAddress",
-                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.body.emailAddress"))
+                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.payload.body.emailAddress"))
                             },
                             {
                                 "reviewContents",
-                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.body.reviewContents"))
+                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.payload.body.reviewContents"))
                             },
                         })
                     }
@@ -91,10 +66,10 @@ namespace EventDrivenCdk.Frontend
                     {
                         Detail = TaskInput.FromObject(new Dictionary<string, object>(1)
                         {
-                            {"reviewId", JsonPath.StringAt("$.reviewIdentifier.reviewId.attributeValue.S")},
-                            {"reviewIdentifier", JsonPath.StringAt("$.body.reviewIdentifier")},
-                            {"emailAddress", JsonPath.StringAt("$.body.emailAddress")},
-                            {"reviewContents", JsonPath.StringAt("$.body.reviewContents")},
+                            {"reviewId", JsonPath.StringAt("$.uuid")},
+                            {"reviewIdentifier", JsonPath.StringAt("$.uuid")},
+                            {"emailAddress", JsonPath.StringAt("$.payload.body.emailAddress")},
+                            {"reviewContents", JsonPath.StringAt("$.payload.body.reviewContents")},
                             {"type", "newReview"},
                         }),
                         DetailType = "newReview",
@@ -112,10 +87,10 @@ namespace EventDrivenCdk.Frontend
             {
                 Parameters = new Dictionary<string, object>(4)
                 {
-                    {"reviewId", JsonPath.StringAt("$.reviewIdentifier.reviewId.attributeValue.S")},
-                    {"reviewIdentifier", JsonPath.StringAt("$.body.reviewIdentifier")},
-                    {"emailAddress", JsonPath.StringAt("$.body.emailAddress")},
-                    {"reviewContents", JsonPath.StringAt("$.body.reviewContents")}
+                    {"reviewId", JsonPath.StringAt("$.uuid")},
+                    {"reviewIdentifier", JsonPath.StringAt("$.uuid")},
+                    {"emailAddress", JsonPath.StringAt("$.payload.body.emailAddress")},
+                    {"reviewContents", JsonPath.StringAt("$.payload.body.reviewContents")}
                 }
             });
         }
