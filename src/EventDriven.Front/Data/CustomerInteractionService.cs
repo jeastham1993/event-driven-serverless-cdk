@@ -28,10 +28,15 @@ namespace EventDriven.Front.Data
                 MaxNumberOfMessages = 1
             });
 
-            var customerServiceMessage = JsonSerializer.Deserialize<SqsMessage>(message.Messages[0].Body);
-            customerServiceMessage.ReceiptHandle = message.Messages[0].ReceiptHandle;
+            if (message.Messages.Count > 0)
+            {
+                var customerServiceMessage = JsonSerializer.Deserialize<SqsMessage>(message.Messages[0].Body);
+                customerServiceMessage.ReceiptHandle = message.Messages[0].ReceiptHandle;
 
-            return customerServiceMessage;
+                return customerServiceMessage;
+            }
+
+            return null;
         }
 
         public async Task SubmitCustomerServiceResponse(SqsMessage customerServiceMessage, string customerServiceAgentName)

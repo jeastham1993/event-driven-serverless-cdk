@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Amazon.CDK;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.SNS;
 using Amazon.CDK.AWS.SNS.Subscriptions;
@@ -18,7 +19,7 @@ namespace EventDrivenCdk.CustomerContactService
                 DisplayName = "Negative Review Notification",
                 TopicName = "NegativeReviewNotification"
             });
-            negativeReviewNotification.AddSubscription(new EmailSubscription("eventdrivencdk@gmail.com", new EmailSubscriptionProps()
+            negativeReviewNotification.AddSubscription(new EmailSubscription("", new EmailSubscriptionProps()
             {
                 
             }));
@@ -35,7 +36,8 @@ namespace EventDrivenCdk.CustomerContactService
         {
             var awaitingClaimQueue = new Queue(scope, "AwaitingClaimQueue", new QueueProps()
             {
-                QueueName = "AwaitingClaim"
+                QueueName = "AwaitingClaim",
+				VisibilityTimeout = Duration.Minutes(2)
             });
 
             return new SqsSendMessage(scope, "QueueForClaim", new SqsSendMessageProps()

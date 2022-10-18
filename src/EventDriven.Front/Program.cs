@@ -12,8 +12,8 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient<RequestService>();
 builder.Services.AddHttpClient<CustomerInteractionService>();
 
-builder.Services.AddSingleton<AmazonSQSClient>(new AmazonSQSClient());
-builder.Services.AddSingleton<AmazonStepFunctionsClient>(new AmazonStepFunctionsClient());
+builder.Services.AddSingleton<AmazonSQSClient>(new AmazonSQSClient(Amazon.RegionEndpoint.USEast1));
+builder.Services.AddSingleton<AmazonStepFunctionsClient>(new AmazonStepFunctionsClient(Amazon.RegionEndpoint.USEast1));
 builder.Services.AddScoped<CustomerInteractionService>();
 
 var app = builder.Build();

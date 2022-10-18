@@ -36,6 +36,7 @@ namespace EventDrivenCdk.Frontend
 
             // Define the business workflow to integrate with the HTTP request, generate the case id
             // store and publish.
+            // Abstract the complexities of each Workflow Step behind a method call of legibility
             var stateMachine = new DefaultStateMachine(this, "ApiStateMachine",
                 // Generate a case id that can be returned to the frontend
                 WorkflowStep.GenerateCaseId(this)
