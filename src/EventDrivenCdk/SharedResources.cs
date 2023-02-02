@@ -25,7 +25,7 @@ namespace EventDrivenCdk
                 Description = "Discovery for central event bus"
             });
 
-            SharedConstruct.CentralEventBus.AddCentralEventBus(this.CentralEventBus);
+            SharedConstruct.MessageBus.AddCentralEventBus(this.CentralEventBus);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace EventDrivenCdk.CustomerContactService
                     .Next(WorkflowStep.WaitForCustomerAgentClaim(this))
                     // Then store the customer service agent claim in a database
                     .Next(WorkflowStep.StoreCustomerServiceClaim(this))
-                    .Next(CentralEventBus.PublishEvent(this, "PublishClaimEvent", "event-driven-cdk.customer-service", "customerServiceCaseClaimed", TaskInput.FromObject(new Dictionary<string, object>(1)
+                    .Next(MessageBus.PublishEvent(this, "PublishClaimEvent", "event-driven-cdk.customer-service", "customerServiceCaseClaimed", TaskInput.FromObject(new Dictionary<string, object>(1)
                     {
                         {"reviewId", JsonPath.StringAt("$.detail.reviewId")},
                         {"claimedBy", JsonPath.StringAt("$.claimResponse.ClaimedBy")},
@@ -28,7 +28,7 @@ namespace EventDrivenCdk.CustomerContactService
             var stateMachine = new DefaultStateMachine(this, "CustomerContactWorkflow",
                 workflow, StateMachineType.STANDARD);
 
-            CentralEventBus.AddRule(this, "NegativeReviewRule", "event-driven-cdk.sentiment-analysis",
+            MessageBus.SubscribeTo(this, "NegativeReviewRule", "event-driven-cdk.sentiment-analysis",
                 "negativeReview", stateMachine);
         }
     }

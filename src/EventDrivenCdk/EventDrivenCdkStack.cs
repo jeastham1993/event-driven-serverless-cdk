@@ -23,14 +23,15 @@ namespace EventDrivenCdk
             });
 
             var eventAuditor = new EventAuditService.EventAuditService(this, "EventAuditService");
-
+            
+            /*
             var notificationService = new NotificationService.NotificationService(this, "NotificationService", new NotificationServiceProps()
             {
                 CentralEventBus = sharedStack.CentralEventBus
             });
-
             var customerContactService = new CustomerContactService.CustomerContactService(this,
                 "CustomerContactService");
+                */
         }
     }
 }

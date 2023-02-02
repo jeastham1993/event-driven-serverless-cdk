@@ -49,7 +49,7 @@ namespace EventDrivenCdk.NotificationService
             var stateMachine = new DefaultStateMachine(this, "NotificationServiceStateMachine", choice,
                 StateMachineType.STANDARD);
 
-            CentralEventBus.AddRule(this, "NotificationRule", new string[2] {"event-driven-cdk.sentiment-analysis", "event-driven-cdk.customer-service"},
+            MessageBus.SubscribeTo(this, "NotificationRule", new string[2] {"event-driven-cdk.sentiment-analysis", "event-driven-cdk.customer-service"},
                 new string[3] {"positiveReview", "negativeReview", "customerServiceCaseClaimed"}, stateMachine);
         }
     }

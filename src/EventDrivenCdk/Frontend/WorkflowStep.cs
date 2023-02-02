@@ -44,11 +44,11 @@ namespace EventDrivenCdk.Frontend
                             },
                             {
                                 "emailAddress",
-                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.payload.body.emailAddress"))
+                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.payload.emailAddress"))
                             },
                             {
                                 "reviewContents",
-                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.payload.body.reviewContents"))
+                                DynamoAttributeValue.FromString(JsonPath.StringAt("$.payload.reviewContents"))
                             },
                         })
                     }
@@ -68,8 +68,8 @@ namespace EventDrivenCdk.Frontend
                         {
                             {"reviewId", JsonPath.StringAt("$.uuid")},
                             {"reviewIdentifier", JsonPath.StringAt("$.uuid")},
-                            {"emailAddress", JsonPath.StringAt("$.payload.body.emailAddress")},
-                            {"reviewContents", JsonPath.StringAt("$.payload.body.reviewContents")},
+                            {"emailAddress", JsonPath.StringAt("$.payload.emailAddress")},
+                            {"reviewContents", JsonPath.StringAt("$.payload.reviewContents")},
                             {"type", "newReview"},
                         }),
                         DetailType = "newReview",
@@ -89,8 +89,8 @@ namespace EventDrivenCdk.Frontend
                 {
                     {"reviewId", JsonPath.StringAt("$.uuid")},
                     {"reviewIdentifier", JsonPath.StringAt("$.uuid")},
-                    {"emailAddress", JsonPath.StringAt("$.payload.body.emailAddress")},
-                    {"reviewContents", JsonPath.StringAt("$.payload.body.reviewContents")}
+                    {"emailAddress", JsonPath.StringAt("$.payload.emailAddress")},
+                    {"reviewContents", JsonPath.StringAt("$.payload.reviewContents")}
                 }
             });
         }

@@ -10,7 +10,7 @@ using EventBus = Amazon.CDK.AWS.Events.EventBus;
 
 namespace EventDrivenCdk.SharedConstruct
 {
-    public static class CentralEventBus
+    public static class MessageBus
     {
         private static EventBus _centralEventBus;
 
@@ -18,8 +18,10 @@ namespace EventDrivenCdk.SharedConstruct
         {
             _centralEventBus = bus;
         }
+
+        public static EventBus EventBus => _centralEventBus;
         
-        public static Rule AddRule(Construct scope, string ruleName, string eventSource, string eventType, StateMachine workflow)
+        public static Rule SubscribeTo(Construct scope, string ruleName, string eventSource, string eventType, StateMachine target)
         {
             return new Rule(scope, ruleName, new RuleProps()
             {
@@ -32,12 +34,12 @@ namespace EventDrivenCdk.SharedConstruct
                 },
                 Targets = new IRuleTarget[1]
                 {
-                    new SfnStateMachine(workflow)
+                    new SfnStateMachine(target)
                 }
             });
         }
         
-        public static Rule AddRule(Construct scope, string ruleName, string[] eventSource, string[] eventType, StateMachine workflow)
+        public static Rule SubscribeTo(Construct scope, string ruleName, string[] eventSource, string[] eventType, StateMachine workflow)
         {
             return new Rule(scope, ruleName, new RuleProps()
             {
@@ -55,7 +57,7 @@ namespace EventDrivenCdk.SharedConstruct
             });
         }
         
-        public static Rule AddRule(Construct scope, string ruleName, string[] eventSource, StateMachine workflow)
+        public static Rule SubscribeTo(Construct scope, string ruleName, string[] eventSource, StateMachine target)
         {
             return new Rule(scope, ruleName, new RuleProps()
             {
@@ -67,7 +69,7 @@ namespace EventDrivenCdk.SharedConstruct
                 },
                 Targets = new IRuleTarget[1]
                 {
-                    new SfnStateMachine(workflow)
+                    new SfnStateMachine(target)
                 }
             });
         }
